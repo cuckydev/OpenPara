@@ -1,0 +1,6 @@
+overlay-gen.ld: overlay.ld
+	rm -f $@
+	$(CC) -CC -E -x c $< | grep -v '^#' >> $@
+
+clean:
+	rm -rf overlay-gen.ld

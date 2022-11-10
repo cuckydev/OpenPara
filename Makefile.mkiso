@@ -1,0 +1,5 @@
+$(TARGET).bin: $(TARGET).xml $(TARGET).ps-exe $(shell find $/iso/ -name '*')
+	mkpsxiso -y $<
+
+clean:
+	rm -f $(TARGET).bin $(TARGET).cue

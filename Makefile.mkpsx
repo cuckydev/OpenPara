@@ -1,0 +1,49 @@
+TYPE = ps-exe
+BUILD = Release
+
+SRCS = $(SOURCES) \
+	src/Boot/OpenPara.cpp \
+	src/Boot/Mem.cpp \
+	src/Boot/Rap.cpp \
+	src/Boot/Int.cpp \
+	src/Boot/CxxGlue.cpp \
+	src/Boot/CD.cpp \
+	src/Boot/SPU.cpp \
+	src/Boot/Pad.cpp \
+	src/Boot/GPU.cpp \
+	src/Boot/Timer.cpp \
+	src/S1/S1.cpp \
+	mips/common/crt0/crt0cxx.s
+
+OVERLAYSCRIPT  ?= overlay-gen.ld
+OVERLAYSECTION ?= .S1
+
+CPPFLAGS += -msoft-float -Wall -Wextra -Wno-strict-aliasing -Wno-unused-function -Werror -I. -Isrc -Isrc/PSX -Imips/psyq/include 
+ARCHFLAGS += -msoft-float
+LDFLAGS += -Lmips/psyq/lib
+LDFLAGS += -Wl,--start-group
+LDFLAGS += -lapi
+LDFLAGS += -lc
+LDFLAGS += -lc2
+LDFLAGS += -lcard
+LDFLAGS += -lcd
+# LDFLAGS += -lcomb
+LDFLAGS += -lds
+LDFLAGS += -letc
+LDFLAGS += -lgpu
+# LDFLAGS += -lgs
+# LDFLAGS += -lgte
+# LDFLAGS += -lgun
+# LDFLAGS += -lhmd
+# LDFLAGS += -lmath
+LDFLAGS += -lmcrd
+# LDFLAGS += -lmcx
+LDFLAGS += -lpad
+LDFLAGS += -lpress
+# LDFLAGS += -lsio
+LDFLAGS += -lsnd
+LDFLAGS += -lspu
+# LDFLAGS += -ltap
+LDFLAGS += -Wl,--end-group
+
+include mips/common.mk

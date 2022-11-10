@@ -1,0 +1,105 @@
+<iso_project image_name="openpara.bin" cue_sheet="openpara.cue">
+    <track type="data">
+        <identifiers system="PLAYSTATION" application="PLAYSTATION" volume="PLAYSTATION" creation_date="1996052617173500+36"/>
+        <license file="iso/license_data.dat"/>
+        <default_attributes gmt_offs="36" xa_attrib="32" xa_perm="1365" xa_gid="0" xa_uid="0"/>
+        <directory_tree>
+            <file name="SYSTEM.CNF" source="iso/SYSTEM.CNF" type="data"/>
+            <file name="SCUS_941.83" source="openpara.ps-exe" type="data"/>
+            <dir name="S0" source="iso/S0">
+                <file name="COMMON.INT" source="iso/S0/COMMON.INT" type="data"/>
+                <file name="COMOD0.BIN" source="iso/S0/COMOD0.BIN" type="data"/>
+                <file name="COMPO00.INT" source="iso/S0/COMPO00.INT" type="data"/>
+                <file name="YCOMPO.INT" source="iso/S0/YCOMPO.INT" type="data"/>
+                <file name="ZCOMPO.INT" source="iso/S0/ZCOMPO.INT" type="data"/>
+            </dir>
+            <dir name="S9" source="iso/S9">
+                <file name="STAGE9.XA1" source="iso/S9/STAGE9.XA1" type="mixed"/>
+                <file name="COMMON.INT" source="iso/S9/COMMON.INT" type="data"/>
+                <file name="COMOD9.BIN" source="iso/S9/COMOD9.BIN" type="data"/>
+                <file name="COMPO09.INT" source="iso/S9/COMPO09.INT" type="data"/>
+                <file name="YCOMPO.INT" source="iso/S9/YCOMPO.INT" type="data"/>
+                <file name="ZCOMPO.INT" source="iso/S9/ZCOMPO.INT" type="data"/>
+            </dir>
+            <dir name="S8" source="iso/S8">
+                <file name="COMMON.INT" source="iso/S8/COMMON.INT" type="data"/>
+                <file name="COMOD8.BIN" source="iso/S8/COMOD8.BIN" type="data"/>
+                <file name="COMPO08.INT" source="iso/S8/COMPO08.INT" type="data"/>
+                <file name="XMOVIE8.STR" source="iso/S8/XMOVIE8.STR" type="mixed"/>
+                <file name="YCOMPO.INT" source="iso/S8/YCOMPO.INT" type="data"/>
+                <file name="ZCOMPO.INT" source="iso/S8/ZCOMPO.INT" type="data"/>
+            </dir>
+            <dir name="S7" source="iso/S7">
+                <file name="STAGE7.XA1" source="iso/S7/STAGE7.XA1" type="mixed"/>
+                <file name="COMMON.INT" source="iso/S7/COMMON.INT" type="data"/>
+                <file name="COMOD7.BIN" source="iso/S7/COMOD7.BIN" type="data"/>
+                <file name="COMPO07.INT" source="iso/S7/COMPO07.INT" type="data"/>
+                <file name="YCOMPO.INT" source="iso/S7/YCOMPO.INT" type="data"/>
+                <file name="ZCOMPO.INT" source="iso/S7/ZCOMPO.INT" type="data"/>
+            </dir>
+            <dir name="S6" source="iso/S6">
+                <file name="STAGE6.XA1" source="iso/S6/STAGE6.XA1" type="mixed"/>
+                <file name="XMOVIE6.STR" source="iso/S6/XMOVIE6.STR" type="mixed"/>
+                <file name="YCOMPO.INT" source="iso/S6/YCOMPO.INT" type="data"/>
+                <file name="YMOVIE6.STR" source="iso/S6/YMOVIE6.STR" type="mixed"/>
+                <file name="ZCOMPO.INT" source="iso/S6/ZCOMPO.INT" type="data"/>
+                <file name="ZMOVIE6.STR" source="iso/S6/ZMOVIE6.STR" type="mixed"/>
+                <file name="COMMON.INT" source="iso/S6/COMMON.INT" type="data"/>
+                <file name="COMOD6.BIN" source="iso/S6/COMOD6.BIN" type="data"/>
+                <file name="COMPO06.INT" source="iso/S6/COMPO06.INT" type="data"/>
+            </dir>
+            <dir name="S5" source="iso/S5">
+                <file name="STAGE5.XA1" source="iso/S5/STAGE5.XA1" type="mixed"/>
+                <file name="XMOVIE5.STR" source="iso/S5/XMOVIE5.STR" type="mixed"/>
+                <file name="YCOMPO.INT" source="iso/S5/YCOMPO.INT" type="data"/>
+                <file name="YMOVIE5.STR" source="iso/S5/YMOVIE5.STR" type="mixed"/>
+                <file name="ZCOMPO.INT" source="iso/S5/ZCOMPO.INT" type="data"/>
+                <file name="COMMON.INT" source="iso/S5/COMMON.INT" type="data"/>
+                <file name="COMOD5.BIN" source="iso/S5/COMOD5.BIN" type="data"/>
+                <file name="COMPO05.INT" source="iso/S5/COMPO05.INT" type="data"/>
+            </dir>
+            <dir name="S3" source="iso/S3">
+                <file name="STAGE3.XA1" source="iso/S3/STAGE3.XA1" type="mixed"/>
+                <file name="XMOVIE3.STR" source="iso/S3/XMOVIE3.STR" type="mixed"/>
+                <file name="YCOMPO.INT" source="iso/S3/YCOMPO.INT" type="data"/>
+                <file name="YMOVIE3.STR" source="iso/S3/YMOVIE3.STR" type="mixed"/>
+                <file name="ZCOMPO.INT" source="iso/S3/ZCOMPO.INT" type="data"/>
+                <file name="COMMON.INT" source="iso/S3/COMMON.INT" type="data"/>
+                <file name="COMOD3.BIN" source="iso/S3/COMOD3.BIN" type="data"/>
+                <file name="COMPO03.INT" source="iso/S3/COMPO03.INT" type="data"/>
+            </dir>
+            <dir name="S2" source="iso/S2">
+                <file name="STAGE2.XA1" source="iso/S2/STAGE2.XA1" type="mixed"/>
+                <file name="XMOVIE2.STR" source="iso/S2/XMOVIE2.STR" type="mixed"/>
+                <file name="YCOMPO.INT" source="iso/S2/YCOMPO.INT" type="data"/>
+                <file name="YMOVIE2.STR" source="iso/S2/YMOVIE2.STR" type="mixed"/>
+                <file name="ZCOMPO.INT" source="iso/S2/ZCOMPO.INT" type="data"/>
+                <file name="COMMON.INT" source="iso/S2/COMMON.INT" type="data"/>
+                <file name="COMOD2.BIN" source="iso/S2/COMOD2.BIN" type="data"/>
+                <file name="COMPO02.INT" source="iso/S2/COMPO02.INT" type="data"/>
+            </dir>
+            <dir name="S1" source="iso/S1">
+                <file name="STAGE1.XA1" source="iso/S1/STAGE1.XA1" type="mixed"/>
+                <file name="XMOVIE1.STR" source="iso/S1/XMOVIE1.STR" type="mixed"/>
+                <file name="YCOMPO.INT" source="iso/S1/YCOMPO.INT" type="data"/>
+                <file name="ZCOMPO.INT" source="iso/S1/ZCOMPO.INT" type="data"/>
+                <file name="COMMON.INT" source="iso/S1/COMMON.INT" type="data"/>
+                <file name="COMOD1.BIN" source="Overlay.S1" type="data"/>
+                <file name="COMPO01.INT" source="iso/S1/COMPO01.INT" type="data"/>
+            </dir>
+			<!--
+            <dir name="SS" source="iso/SS">
+                <file name="MOVIE7.STR" source="iso/SS/MOVIE7.STR" type="mixed"/>
+                <file name="MOVIE6.STR" source="iso/SS/MOVIE6.STR" type="mixed"/>
+                <file name="MOVIE5.STR" source="iso/SS/MOVIE5.STR" type="mixed"/>
+                <file name="MOVIE3.STR" source="iso/SS/MOVIE3.STR" type="mixed"/>
+                <file name="MOVIE2.STR" source="iso/SS/MOVIE2.STR" type="mixed"/>
+                <file name="MOVIE1.STR" source="iso/SS/MOVIE1.STR" type="mixed"/>
+                <file name="MOVIE0T.STR" source="iso/SS/MOVIE0T.STR" type="mixed"/>
+                <file name="MOVIE0.STR" source="iso/SS/MOVIE0.STR" type="mixed"/>
+            </dir>
+			-->
+			<dummy sectors="1024"/>
+        </directory_tree>
+    </track>
+</iso_project>

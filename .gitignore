@@ -1,0 +1,25 @@
+# Ignore compilation files
+*.o
+*.dep
+*.map
+*.elf
+*.ps-exe
+*.exe
+
+obj/
+
+Overlay.*
+!overlay.ld
+overlay-gen.ld
+
+.vs/
+.vscode/
+
+# Ignore copyrighted files
+mips/psyq/
+iso/LICENSE*.DAT
+
+# Ignore CD images
+iso/
+*.bin
+*.cue
