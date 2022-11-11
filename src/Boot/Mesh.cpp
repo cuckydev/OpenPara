@@ -17,10 +17,10 @@ namespace OpenPara
 		// TMD types
 		struct TMDPrim
 		{
-			u_char olen, ilen, flag, mode;
+			uint8_t olen, ilen, flag, mode;
 
-			u_char Option() { return mode & 0x1F; }
-			u_char Code()   { return (mode >> 5) & 3; }
+			uint8_t Option() { return mode & 0x1F; }
+			uint8_t Code()   { return (mode >> 5) & 3; }
 
 			bool IsUnlit()       { return ((flag >> 0) & 1) == 0; }
 			bool IsDoubleSided() { return ((flag >> 1) & 1) == 1; }
@@ -36,57 +36,57 @@ namespace OpenPara
 		struct TMDPrim_PolyFT3
 		{
 			TMDPrim prim;
-			u_char u0, v0; u_short clut;
-			u_char u1, v1; u_short tpage;
-			u_char u2, v2; u_short pad0;
-			u_char r0, g0, b0; u_char pad1;
-			u_short i0, i1;
-			u_short i2, pad2;
+			uint8_t u0, v0; uint16_t clut;
+			uint8_t u1, v1; uint16_t tpage;
+			uint8_t u2, v2; uint16_t pad0;
+			uint8_t r0, g0, b0; uint8_t pad1;
+			uint16_t i0, i1;
+			uint16_t i2, pad2;
 		};
 
 		struct TMDObject
 		{
 			uintptr_t vert_top;
-			u_long n_vert;
+			uint32_t n_vert;
 			uintptr_t normal_top;
-			u_long n_normal;
+			uint32_t n_normal;
 			uintptr_t primitive_top;
-			u_long n_primitive;
-			long scale;
+			uint32_t n_primitive;
+			int32_t scale;
 		};
 
 		struct TMD
 		{
-			u_long id;
-			u_long flags;
-			u_long nobj;
+			uint32_t id;
+			uint32_t flags;
+			uint32_t nobj;
 			TMDObject obj[0];
 		};
 
 		// MIMe types
 		struct VDFKey
 		{
-			u_long obj;
-			u_long vert_top;
-			u_long n_vert;
+			uint32_t obj;
+			uint32_t vert_top;
+			uint32_t n_vert;
 			::SVECTOR vec[0];
 		};
 
 		struct VDF
 		{
-			u_long keys;
+			uint32_t keys;
 			VDFKey key[0];
 		};
 
 		struct DATKey
 		{
-			u_short frames;
-			short influence[0];
+			uint16_t frames;
+			int16_t influence[0];
 		};
 
 		struct DAT
 		{
-			u_short keys;
+			uint16_t keys;
 			DATKey key[0];
 		};
 
@@ -106,7 +106,9 @@ namespace OpenPara
 			const DAT *dat_p = (const DAT*)dat;
 
 			const uint32_t keys = dat_p->keys;
-			const uint32_t frames = dat_p->key[0].frames;
+			uint32_t frames = dat_p->key[0].frames;
+			if (frames != 0)
+				frames--;
 
 			// Copy vertices
 			{
@@ -119,51 +121,78 @@ namespace OpenPara
 
 			// Animate vertices
 			{
-				uint32_t frame = time >> 16;
-				if (frame >= frames)
-					frame = frames - 1;
-				// uint32_t frame_inf1 = time & 0xFFFF;
-				// uint32_t frame_inf0 = 0x10000 - frame_inf1;
-
+				// Read VDF and DAT keys
 				const DATKey *dat_key = &dat_p->key[0];
 				const uintptr_t dat_inc = 2 + (frames << 1);
 
 				const VDFKey *vdf_key = &vdf_p->key[0];
 				const uint32_t vdf_verts = vdf_key->n_vert;
 				const uintptr_t vdf_inc = 12 + (vdf_verts << 3);
+				
+				const uint32_t frame = time >> 8;
+				const uint32_t frame_sub = time & 0xFF;
 
-				for (uint32_t key = 0; key < keys; key++)
+				if (frame >= frames)
 				{
-					// Read key
-					const int32_t infl = dat_key->influence[frame];
-					if (infl != 0)
+					// Uninterpolated animation
+					for (uint32_t key = 0; key < keys; key++)
 					{
-						::SVECTOR *vert_p = (::SVECTOR*)0x1F800000;
-						const ::SVECTOR *key_vert_p = &vdf_key->vec[0];
+						// Read key
+						const int32_t infl = dat_key->influence[frames];
 
-						for (uint32_t v = 0; v < vdf_verts; v++, vert_p++, key_vert_p++)
+						if (infl != 0)
 						{
-							int32_t x = vert_p->vx;
-							int32_t y = vert_p->vy;
-							int32_t z = vert_p->vz;
+							::SVECTOR *vert_p = (::SVECTOR*)0x1F800000;
+							const ::SVECTOR *key_vert_p = &vdf_key->vec[0];
 
-							int32_t kx = key_vert_p->vx;
-							int32_t ky = key_vert_p->vy;
-							int32_t kz = key_vert_p->vz;
-
-							x += (kx * infl) >> 12;
-							y += (ky * infl) >> 12;
-							z += (kz * infl) >> 12;
-
-							vert_p->vx = x;
-							vert_p->vy = y;
-							vert_p->vz = z;
+							for (uint32_t v = 0; v < vdf_verts; v++, vert_p++, key_vert_p++)
+							{
+								vert_p->vx += ((int32_t)key_vert_p->vx * infl) >> 12;
+								vert_p->vy += ((int32_t)key_vert_p->vy * infl) >> 12;
+								vert_p->vz += ((int32_t)key_vert_p->vz * infl) >> 12;
+							}
 						}
-					}
 
-					// Increment key
-					dat_key = (const DATKey*)((uintptr_t)dat_key + dat_inc);
-					vdf_key = (const VDFKey*)((uintptr_t)vdf_key + vdf_inc);
+						// Increment key
+						dat_key = (const DATKey*)((uintptr_t)dat_key + dat_inc);
+						vdf_key = (const VDFKey*)((uintptr_t)vdf_key + vdf_inc);
+					}
+				}
+				else
+				{
+					// Interpolated animation
+					for (uint32_t key = 0; key < keys; key++)
+					{
+						// Read key
+						int32_t infl;
+						if (frame_sub != 0)
+						{
+							const int32_t infl0 = dat_key->influence[frame];
+							const int32_t infl1 = dat_key->influence[frame + 1];
+							infl = infl0 + (((int32_t)(infl1 - infl0) * (int32_t)frame_sub) >> 8);
+						}
+						else
+						{
+							infl = dat_key->influence[frame];
+						}
+
+						if (infl != 0)
+						{
+							::SVECTOR *vert_p = (::SVECTOR*)0x1F800000;
+							const ::SVECTOR *key_vert_p = &vdf_key->vec[0];
+
+							for (uint32_t v = 0; v < vdf_verts; v++, vert_p++, key_vert_p++)
+							{
+								vert_p->vx += ((int32_t)key_vert_p->vx * infl) >> 12;
+								vert_p->vy += ((int32_t)key_vert_p->vy * infl) >> 12;
+								vert_p->vz += ((int32_t)key_vert_p->vz * infl) >> 12;
+							}
+						}
+
+						// Increment key
+						dat_key = (const DATKey*)((uintptr_t)dat_key + dat_inc);
+						vdf_key = (const VDFKey*)((uintptr_t)vdf_key + vdf_inc);
+					}
 				}
 			}
 

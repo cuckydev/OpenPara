@@ -33,7 +33,7 @@ namespace OpenPara
 				void SetAnim(void *_anim)
 				{
 					anim = _anim;
-					start = 0;//VSync(-1);
+					start = GPU::g_frame;
 				}
 
 				void *GetAnim()
@@ -43,12 +43,11 @@ namespace OpenPara
 
 				uint32_t GetTime()
 				{
-					return (start++) * 0x8000;
-					//uint32_t delta = VSync(-1) - start;
-					//if (GPU::g_pal)
-					//	return (uint64_t)delta * 0x960000 / 360;
-					//else
-					//	return delta * 0x8000;
+					uint32_t delta = GPU::g_frame - start;
+					if (GPU::g_pal)
+						return (uint64_t)delta * 0x9600 / 360;
+					else
+						return delta << 7;
 				}
 		};
 	}
