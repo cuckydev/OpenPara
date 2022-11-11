@@ -1,8 +1,8 @@
 # [ OpenPara ]
 # Copyright Regan "CKDEV" Green 2022
 # 
-# - Mesh.cpp -
-# Mesh drawing
+# - Mesh_asm.s -
+# Mesh drawing assembly functions
 
 .set noreorder
 
@@ -44,6 +44,8 @@ OpenPara_Mesh_MIMe_asm:
 
 	cop2  0x01A8003E  # gte_gpl12
 	
+	addiu $a0, 8
+	
 	mfc2  $t0, $25
 	mfc2  $t1, $26
 
@@ -52,11 +54,11 @@ OpenPara_Mesh_MIMe_asm:
 	or    $t0, $t1
 	
 	mfc2  $t2, $27
-	sw    $t0, 0($a0)
-	sw    $t2, 4($a0)
+	sw    $t0, -8($a0)
+	sw    $t2, -4($a0)
 	
 	bnez  $a2, .Ltrans_loop
-	addiu $a0, 8
+	nop
 
 	jr    $ra
 	nop

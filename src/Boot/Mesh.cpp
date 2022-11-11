@@ -240,6 +240,7 @@ namespace OpenPara
 							// Read Z index
 							uint32_t otz;
 							gte_stotz(&otz);
+							otz >>= 3;
 
 							// Link polygon
 							if (otz != 0 && otz < GPU::OT::Length)
