@@ -81,6 +81,8 @@ namespace OpenPara
 				{
 					int32_t judge = JudgeRap();
 					score += judge;
+					if (score < 0)
+						score = 0;
 					DebugOut("SCORE: %d\n", score);
 				}
 				StartRap(next_rap_line);
@@ -145,40 +147,64 @@ namespace OpenPara
 			const Suggest *suggest_p = rap_line->suggest;
 			const Suggest *suggest_e = rap_line->suggest + rap_line->suggests;
 
-			for (uint32_t i = 0; i < tap_inputs; i++)
+			if (rank == Rank::Cool)
 			{
-				// Get tap to judge
-				Tap &tap = tap_input[i];
-
-				// Mark key as pressed
-				uint32_t key_bit = 1 << (tap.button & Button::KeyMask);
-				tap_keys |= key_bit;
-
-				// Get nearby suggest
-				while (suggest_p != nullptr && Substep::type(suggest_p->time.round()) < Substep::type(tap.time.round()))
+				for (uint32_t i = 0; i < tap_inputs; i++)
 				{
-					if (++suggest_p == suggest_e)
-						suggest_p = nullptr;
-				}
-				const Suggest *suggest_c = (suggest_p != nullptr && Substep::type(suggest_p->time.round()) == Substep::type(tap.time.round())) ? suggest_p : nullptr;
+					// Get tap to judge
+					Tap &tap = tap_input[i];
 
-				// Check if note is in the line and properly timed
-				if (rank == Rank::Cool)
-				{
+					// Get nearby suggest
+					while (suggest_p != nullptr && Substep::type(suggest_p->time.round()) < Substep::type(tap.time.round()))
+					{
+						if (++suggest_p == suggest_e)
+							suggest_p = nullptr;
+					}
+					const Suggest *suggest_c = (suggest_p != nullptr && Substep::type(suggest_p->time.round()) == Substep::type(tap.time.round())) ? suggest_p : nullptr;
+
+					// Check if tap was timed
 					if (tap.IsTimed())
-						judge_timed += 3; // Reward timed inputs
-					else
-						judge_timed -= 3; // Penalize mistimed inputs
-					
-					// Submit for freestyle
-					pair_freestyle.Submit(Substep::type(tap.time.round()));
+					{
+						// Reward timed inputs
+						judge_timed += 3;
 
-					// Submit for funk
-					if (tap.IsFunky())
-						pair_funk.Submit(Substep::type(tap.time.round()));
+						// Submit for freestyle
+						pair_freestyle.Submit(Substep::type(tap.time.round()));
+
+						// Submit for funk
+						if (tap.IsFunky())
+							pair_funk.Submit(Substep::type(tap.time.round()));
+					}
+					else
+					{
+						// Penalize mistimed inputs
+						judge_timed -= 3;
+					}
 				}
-				else
+
+				// Final judge
+				return judge_timed + pair_freestyle.Judge(18, 0, 15, 6, 9) + pair_funk.Judge(27, 0, 22, 9, 13);
+			}
+			else
+			{
+				for (uint32_t i = 0; i < tap_inputs; i++)
 				{
+					// Get tap to judge
+					Tap &tap = tap_input[i];
+
+					// Mark key as pressed
+					uint32_t key_bit = 1 << (tap.button & Button::KeyMask);
+					tap_keys |= key_bit;
+
+					// Get nearby suggest
+					while (suggest_p != nullptr && Substep::type(suggest_p->time.round()) < Substep::type(tap.time.round()))
+					{
+						if (++suggest_p == suggest_e)
+							suggest_p = nullptr;
+					}
+					const Suggest *suggest_c = (suggest_p != nullptr && Substep::type(suggest_p->time.round()) == Substep::type(tap.time.round())) ? suggest_p : nullptr;
+
+					// Check if tap was timed
 					if (tap.IsTimed() && (req_keys & key_bit) != 0)
 					{
 						// Reward timed inputs
@@ -207,15 +233,8 @@ namespace OpenPara
 							judge_penalty += 6;
 					}
 				}
-			}
 
-			// Apply scores
-			if (rank == Rank::Cool)
-			{
-				return judge_timed + pair_freestyle.Judge(18, 0, 15, 6, 9) + pair_funk.Judge(27, 0, 22, 9, 13);
-			}
-			else
-			{
+				// Final judge
 				if ((req_keys & tap_keys) != req_keys)
 					return -judge_penalty;
 				if (judge_timed <= 0)
@@ -251,13 +270,10 @@ namespace OpenPara
 				{0xFF, 0x00, 0x00},
 				{0x30, 0x00, 0xFF},
 				{0xFF, 0x00, 0xFF},
-				{0xFF, 0xFF, 0x00},
 				{0x00, 0x00, 0xFF},
+				{0xFF, 0xFF, 0x00},
 			};
 			(void)cols;
-
-			// Draw head
-			DrawTapSprite(substep, 0xFF, 0x20, 0x00);
 
 			// Draw tapped line
 			{

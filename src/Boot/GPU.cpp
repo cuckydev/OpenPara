@@ -17,6 +17,8 @@ namespace OpenPara
 		// GPU globals
 		bool g_pal = false;
 
+		int g_frame;
+
 		// GPU buffers
 		Buffer g_buffer[2];
 		Buffer *g_bufferp;
@@ -95,6 +97,9 @@ namespace OpenPara
 
 			// Enable display
 			::SetDispMask(1);
+
+			// Set frame counter
+			g_frame = ::VSync(-1);
 		}
 
 		void Flip()
@@ -115,6 +120,9 @@ namespace OpenPara
 
 			g_bufferp->prip = g_bufferp->pri;
 			::ClearOTagR((u_long*)g_bufferp->ot, 1 + OT::Length);
+
+			// Set frame counter
+			g_frame = ::VSync(-1);
 		}
 	}
 }

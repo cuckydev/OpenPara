@@ -112,7 +112,7 @@ namespace OpenPara
 							if (tparam.mode & 0x8)
 								::LoadImage(tparam.crect, (u_long*)tparam.caddr);
 							
-							ptr += read_header.file[i].size;
+							ptr = (char*)(((uintptr_t)ptr + read_header.file[i].size + 3) & ~3);
 						}
 
 						Mem::Free(read_state.mem);
@@ -133,7 +133,7 @@ namespace OpenPara
 						{
 							uint32_t size = (uint32_t)mem_file[i].ptr;
 							mem_file[i].ptr = ptr;
-							ptr += size;
+							ptr = (char*)(((uintptr_t)ptr + size + 3) & ~3);
 						}
 					}
 					case BlockType::EoF:

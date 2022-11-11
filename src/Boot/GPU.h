@@ -20,6 +20,8 @@ namespace OpenPara
 
 		extern bool g_pal;
 
+		extern int g_frame;
+
 		// GPU buffers
 		enum OT
 		{

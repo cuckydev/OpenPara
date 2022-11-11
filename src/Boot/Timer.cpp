@@ -28,6 +28,7 @@ namespace OpenPara
 		// Timer functions
 		void Init()
 		{
+			/*
 			::EnterCriticalSection();
 			::ChangeClearRCnt(2, 0);
 			::InterruptCallback(6, TickIRQ);
@@ -37,6 +38,7 @@ namespace OpenPara
 			TIMER_RELOAD(2) = (F_CPU / 8) / TIMER_RATE;
 
 			::ExitCriticalSection();
+			*/
 		}
 
 		Ticks Tell()
@@ -51,19 +53,23 @@ namespace OpenPara
 
 		void Pause()
 		{
+			/*
 			// Clear IRQ
 			::EnterCriticalSection();
 			::InterruptCallback(6, nullptr);
 			::ExitCriticalSection();
+			*/
 		}
 
 		void Resume()
 		{
+			/*
 			// Resume IRQ
 			::EnterCriticalSection();
 			::ChangeClearRCnt(2, 0);
 			::InterruptCallback(6, TickIRQ);
 			::ExitCriticalSection();
+			*/
 		}
 	}
 }

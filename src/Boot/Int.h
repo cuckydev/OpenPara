@@ -38,6 +38,8 @@ namespace OpenPara
 				void Read(const ::CdlFILE *file);
 
 				static void ReadyCallback(u_char status, u_char *result);
+
+				void* operator[](int i) { return mem_file[i].ptr; }
 		};
 	}
 }

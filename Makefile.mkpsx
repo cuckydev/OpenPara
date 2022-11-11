@@ -6,6 +6,7 @@ SRCS = $(SOURCES) \
 	src/Boot/Mem.cpp \
 	src/Boot/Rap.cpp \
 	src/Boot/Int.cpp \
+	src/Boot/Mesh.cpp \
 	src/Boot/CxxGlue.cpp \
 	src/Boot/CD.cpp \
 	src/Boot/SPU.cpp \
@@ -18,7 +19,7 @@ SRCS = $(SOURCES) \
 OVERLAYSCRIPT  ?= overlay-gen.ld
 OVERLAYSECTION ?= .S1
 
-CPPFLAGS += -msoft-float -Wall -Wextra -Wno-strict-aliasing -Wno-unused-function -Werror -I. -Isrc -Isrc/PSX -Imips/psyq/include 
+CPPFLAGS += -msoft-float -Wall -Wextra -Wno-strict-aliasing -Wno-unused-function -I. -Isrc -Isrc/PSX -Imips/psyq/include 
 ARCHFLAGS += -msoft-float
 LDFLAGS += -Lmips/psyq/lib
 LDFLAGS += -Wl,--start-group
