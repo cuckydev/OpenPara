@@ -243,7 +243,7 @@ namespace OpenPara
 				{
 					uint32_t modifier = 0;
 					if (Pad::g_pad[0].held & Pad::Button::Left)
-						rap.SubmitRap(Rap::Button::Reset); // modifier |= Rap::Button::Reset;
+						rap.SubmitRap(Rap::Button::Reset);
 					if (Pad::g_pad[0].held & Pad::Button::Right)
 						modifier |= Rap::Button::Repeat;
 
@@ -299,10 +299,10 @@ namespace OpenPara
 				gte_SetTransMatrix(&mat);
 				gte_SetRotMatrix(&mat);
 
-				// Mesh::DrawMIMe(on_tmd, 0, pa_blck_vdf, pa_blck_dat);
+				Mesh::DrawMIMe(on_tmd, 0, nullptr, nullptr);
 				
 				// Flip GPU
-				GPU::FillRect(GPU::OT::UI, ::RECT{0, 0, short(GPU::g_width), short(GPU::g_height)}, 0, 0, 0);
+				GPU::FillRect(GPU::OT::Length - 1, ::RECT{0, 0, short(GPU::g_width), short(GPU::g_height)}, 0, 0, 0);
 				GPU::Flip();
 			}
 		}

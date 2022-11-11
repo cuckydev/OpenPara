@@ -50,7 +50,7 @@ namespace OpenPara
 		void Flip();
 
 		template <typename T>
-		static T *AllocPrim(OT ot)
+		static T *AllocPrim(uint32_t ot)
 		{
 			// Allocate and link primitive
 			void *pri = g_bufferp->prip;
@@ -59,7 +59,13 @@ namespace OpenPara
 			return (T*)pri;
 		}
 
-		static void FillRect(OT ot, const ::RECT &rect, uint8_t r, uint8_t g, uint8_t b)
+		template <typename T>
+		static T *GetPrim() { return (T*)g_bufferp->prip; }
+
+		template <typename T>
+		static void InsertPrim() { g_bufferp->prip += sizeof(T) >> 2; }
+
+		static void FillRect(uint32_t ot, const ::RECT &rect, uint8_t r, uint8_t g, uint8_t b)
 		{
 			TILE *tile = AllocPrim<TILE>(ot);
 			setTile(tile);

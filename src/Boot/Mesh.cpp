@@ -10,6 +10,9 @@
 
 #include "Boot/GPU.h"
 
+// C externs
+extern "C" void OpenPara_Mesh_MIMe_asm(::SVECTOR *out, const ::SVECTOR *in, uint32_t n_vert, int32_t weight);
+
 namespace OpenPara
 {
 	namespace Mesh
@@ -120,6 +123,7 @@ namespace OpenPara
 			}
 
 			// Animate vertices
+			if (vdf != nullptr)
 			{
 				// Read VDF and DAT keys
 				const DATKey *dat_key = &dat_p->key[0];
@@ -144,13 +148,7 @@ namespace OpenPara
 						{
 							::SVECTOR *vert_p = (::SVECTOR*)0x1F800000;
 							const ::SVECTOR *key_vert_p = &vdf_key->vec[0];
-
-							for (uint32_t v = 0; v < vdf_verts; v++, vert_p++, key_vert_p++)
-							{
-								vert_p->vx += ((int32_t)key_vert_p->vx * infl) >> 12;
-								vert_p->vy += ((int32_t)key_vert_p->vy * infl) >> 12;
-								vert_p->vz += ((int32_t)key_vert_p->vz * infl) >> 12;
-							}
+							OpenPara_Mesh_MIMe_asm(vert_p, key_vert_p, vdf_key->n_vert, infl);
 						}
 
 						// Increment key
@@ -180,13 +178,7 @@ namespace OpenPara
 						{
 							::SVECTOR *vert_p = (::SVECTOR*)0x1F800000;
 							const ::SVECTOR *key_vert_p = &vdf_key->vec[0];
-
-							for (uint32_t v = 0; v < vdf_verts; v++, vert_p++, key_vert_p++)
-							{
-								vert_p->vx += ((int32_t)key_vert_p->vx * infl) >> 12;
-								vert_p->vy += ((int32_t)key_vert_p->vy * infl) >> 12;
-								vert_p->vz += ((int32_t)key_vert_p->vz * infl) >> 12;
-							}
+							OpenPara_Mesh_MIMe_asm(vert_p, key_vert_p, vdf_key->n_vert, infl);
 						}
 
 						// Increment key
@@ -216,8 +208,7 @@ namespace OpenPara
 						gte_rtpt();
 
 						// Copy polygon
-						::POLY_FT3 *poly = (::POLY_FT3*)GPU::g_bufferp->prip;
-						GPU::g_bufferp->prip += sizeof(::POLY_FT3) >> 2;
+						::POLY_FT3 *poly = GPU::GetPrim<::POLY_FT3>();
 
 						*((uint32_t*)&poly->r0) = *((uint32_t*)&prim_poly->r0);
 						setPolyFT3(poly);
@@ -226,18 +217,37 @@ namespace OpenPara
 						*((uint32_t*)&poly->u1) = *((uint32_t*)&prim_poly->u1);
 						*((uint32_t*)&poly->u2) = *((uint32_t*)&prim_poly->u2);
 
-						// Read transform results
-						uint32_t v0, v1, v2;
-						gte_stsxy0(&v0);
-						gte_stsxy1(&v1);
-						gte_stsxy2(&v2);
+						// Perform normal check
+						int32_t nsign;
+						gte_nclip_b();
+						gte_stopz(&nsign);
 
-						*((uint32_t*)&poly->x0) = v0;
-						*((uint32_t*)&poly->x1) = v1;
-						*((uint32_t*)&poly->x2) = v2;
+						if (nsign > 0)
+						{
+							// Average Z values
+							gte_avsz3_b();
 
-						// Link polygon
-						addPrim(&GPU::g_bufferp->ot[1], poly);
+							// Read transform results
+							uint32_t v0, v1, v2;
+							gte_stsxy0(&v0);
+							gte_stsxy1(&v1);
+							gte_stsxy2(&v2);
+
+							*((uint32_t*)&poly->x0) = v0;
+							*((uint32_t*)&poly->x1) = v1;
+							*((uint32_t*)&poly->x2) = v2;
+
+							// Read Z index
+							uint32_t otz;
+							gte_stotz(&otz);
+
+							// Link polygon
+							if (otz != 0 && otz < GPU::OT::Length)
+							{
+								addPrim(&GPU::g_bufferp->ot[otz], poly);
+								GPU::InsertPrim<::POLY_FT3>();
+							}
+						}
 					}
 
 					prim_p = (const TMDPrim*)((uintptr_t)prim_p + ((prim_p->ilen << 2) + 4));

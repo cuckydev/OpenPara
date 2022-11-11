@@ -149,6 +149,8 @@ namespace OpenPara
 				{
 					// Get tap to judge
 					Tap &tap = tap_input[i];
+					if (tap.button == Button::Reset)
+						continue;
 
 					// Check if tap was timed
 					if (tap.IsTimed())
@@ -184,6 +186,8 @@ namespace OpenPara
 				{
 					// Get tap to judge
 					Tap &tap = tap_input[i];
+					if (tap.button == Button::Reset)
+						continue;
 
 					// Mark key as pressed
 					uint32_t key_bit = 1 << (tap.button & Button::KeyMask);
@@ -273,7 +277,10 @@ namespace OpenPara
 				for (uint32_t i = 0; i < tap_inputs; i++)
 				{
 					const Tap &tap = tap_input[i];
-					DrawTapSprite(tap.time, cols[tap.button].r, cols[tap.button].g, cols[tap.button].b);
+					if (tap.button == Button::Reset)
+						continue;
+					uint32_t button = tap.button & Button::KeyMask;
+					DrawTapSprite(tap.time, cols[button].r, cols[button].g, cols[button].b);
 				}
 			}
 
@@ -285,72 +292,6 @@ namespace OpenPara
 					DrawTapSprite(suggest.time, cols[suggest.button].r, cols[suggest.button].g, cols[suggest.button].b);
 				}
 			}
-
-			/*
-			// Tap colours
-			static const struct
-			{
-				int r, g, b;
-			} cols[6] = {
-				{0x00, 0xFF, 0x00},
-				{0xFF, 0x00, 0x00},
-				{0x30, 0x00, 0xFF},
-				{0xFF, 0x00, 0xFF},
-				{0xFF, 0xFF, 0x00},
-				{0x00, 0x00, 0xFF},
-			};
-			
-
-			// Get screen coordinates
-			int32_t sx = ((int32_t)GPU::g_width - (16 * 16)) / 2;
-			int32_t sy = 32;
-
-			// Get beat alignment
-			uint32_t ss = line->start;
-
-			// Draw head
-			{
-				uint32_t s = step - ss;
-				uint32_t subs = substep & SUBSTEPS_AND;
-
-				int32_t x = sx + ((s & 15) << 4) + (subs * 16 / SUBSTEPS);
-				int32_t y = sy + ((s >> 4) << 4);
-				
-				GPU::FillRect(OpenPara::GPU::OT::UI, ::RECT{short(x + 2), short(y + 2), 12, 12}, 0xFF, 0x20, 0x00);
-			}
-
-			// Draw suggested line
-			{
-				for (uint32_t i = 0; i < line->suggests; i++)
-				{
-					const Suggest &suggest = line->suggest[i];
-					
-					uint32_t s = (suggest.time / SUBSTEPS) - ss;
-					uint32_t subs = suggest.time & SUBSTEPS_AND;
-
-					int32_t x = sx + ((s & 15) << 4) + (subs * 16 / SUBSTEPS);
-					int32_t y = sy + ((s >> 4) << 4);
-					
-					int key = suggest.button & Button::KeyMask;
-					GPU::FillRect(OpenPara::GPU::OT::UI, ::RECT{short(x + 2), short(y + 2), 12, 12}, cols[key].r, cols[key].g, cols[key].b);
-				}
-			}
-
-			// Draw beats
-			{
-
-				for (uint32_t s = line->start; s < (line->start + line->length); s++)
-				{
-					int32_t x = sx + (((s - ss) & 15) << 4);
-					int32_t y = sy + (((s - ss) >> 4) << 4);
-
-					if (s & 3)
-						GPU::FillRect(OpenPara::GPU::OT::UI, ::RECT{short(x + 6), short(y + 6), 4, 4}, 0xFF, 0xFF, 0xFF);
-					else
-						GPU::FillRect(OpenPara::GPU::OT::UI, ::RECT{short(x + 4), short(y + 4), 8, 8}, 0xFF, 0x80, 0x00);
-				}
-			}
-			*/
 		}
 
 		void Rap::Draw()
