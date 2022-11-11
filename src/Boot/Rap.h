@@ -139,7 +139,7 @@ namespace OpenPara
 				// Pair state
 				uint32_t pair_step = 0;
 				uint32_t pair_v = 0;
-				uint8_t pair[4] = {};
+				uint32_t pair[4] = {};
 
 			public:
 				// Pair functions
@@ -163,8 +163,8 @@ namespace OpenPara
 				int32_t Judge(int32_t worth_set, int32_t worth_00, int32_t worth_01, int32_t worth_10, int32_t worth_11)
 				{
 					// Get sets collected
-					uint8_t sets = ~(uint8_t(0));
-					for (uint8_t &i : pair)
+					uint32_t sets = ~(uint32_t(0));
+					for (auto &i : pair)
 						if (i < sets)
 							sets = i;
 					

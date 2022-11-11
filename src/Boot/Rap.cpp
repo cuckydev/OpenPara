@@ -83,7 +83,6 @@ namespace OpenPara
 					score += judge;
 					if (score < 0)
 						score = 0;
-					DebugOut("SCORE: %d\n", score);
 				}
 				StartRap(next_rap_line);
 			}
@@ -143,24 +142,13 @@ namespace OpenPara
 					req_keys |= 1 << rap_line->suggest[i].button;
 			}
 
-			// Get suggests to compare against
-			const Suggest *suggest_p = rap_line->suggest;
-			const Suggest *suggest_e = rap_line->suggest + rap_line->suggests;
-
 			if (rank == Rank::Cool)
 			{
+				// Judge taps
 				for (uint32_t i = 0; i < tap_inputs; i++)
 				{
 					// Get tap to judge
 					Tap &tap = tap_input[i];
-
-					// Get nearby suggest
-					while (suggest_p != nullptr && Substep::type(suggest_p->time.round()) < Substep::type(tap.time.round()))
-					{
-						if (++suggest_p == suggest_e)
-							suggest_p = nullptr;
-					}
-					const Suggest *suggest_c = (suggest_p != nullptr && Substep::type(suggest_p->time.round()) == Substep::type(tap.time.round())) ? suggest_p : nullptr;
 
 					// Check if tap was timed
 					if (tap.IsTimed())
@@ -187,6 +175,11 @@ namespace OpenPara
 			}
 			else
 			{
+				// Get suggests to compare against
+				const Suggest *suggest_p = rap_line->suggest;
+				const Suggest *suggest_e = rap_line->suggest + rap_line->suggests;
+
+				// Judge taps
 				for (uint32_t i = 0; i < tap_inputs; i++)
 				{
 					// Get tap to judge

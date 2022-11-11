@@ -170,112 +170,50 @@ namespace OpenPara
 			// Display primitives
 			{
 				uint32_t prims = tmd_p->obj[0].n_primitive;
-				const TMDPrim_PolyFT3 *prim_p = (const TMDPrim_PolyFT3*)(&tmd_p->obj[0] + tmd_p->obj[0].primitive_top);
+				const TMDPrim *prim_p = (const TMDPrim*)(tmd_p->obj[0].primitive_top + (uintptr_t)&tmd_p->obj[0]);
 
 				const ::SVECTOR *vert_p = (::SVECTOR*)0x1F800000;
 
-				for (u_long i = 0; i < prims; i++)
+				for (uint32_t i = 0; i < prims; i++)
 				{
 					// Check prim
-					if (*((uint32_t*)&prim_p->prim) == 0x25010607)
+					if (*((uint32_t*)prim_p) == 0x25010607)
 					{
+						// Get primitive
+						const TMDPrim_PolyFT3 *prim_poly = (const TMDPrim_PolyFT3*)prim_p;
+
 						// Transform vertices
-						gte_ldv3(&vert_p[prim_p->i0], &vert_p[prim_p->i1], &vert_p[prim_p->i2]);
+						gte_ldv3(&vert_p[prim_poly->i0], &vert_p[prim_poly->i1], &vert_p[prim_poly->i2]);
 						gte_rtpt();
 
 						// Copy polygon
 						::POLY_FT3 *poly = (::POLY_FT3*)GPU::g_bufferp->prip;
 						GPU::g_bufferp->prip += sizeof(::POLY_FT3) >> 2;
 
-						*((uint32_t*)&poly->r0) = *((uint32_t*)&prim_p->r0);
+						*((uint32_t*)&poly->r0) = *((uint32_t*)&prim_poly->r0);
 						setPolyFT3(poly);
 
-						*((uint32_t*)&poly->u0) = *((uint32_t*)&prim_p->u0);
-						*((uint32_t*)&poly->u1) = *((uint32_t*)&prim_p->u1);
-						*((uint32_t*)&poly->u2) = *((uint32_t*)&prim_p->u2);
+						*((uint32_t*)&poly->u0) = *((uint32_t*)&prim_poly->u0);
+						*((uint32_t*)&poly->u1) = *((uint32_t*)&prim_poly->u1);
+						*((uint32_t*)&poly->u2) = *((uint32_t*)&prim_poly->u2);
 
 						// Read transform results
-						uint32_t vecs[3];
-						gte_stsxy3c(vecs);
+						uint32_t v0, v1, v2;
+						gte_stsxy0(&v0);
+						gte_stsxy1(&v1);
+						gte_stsxy2(&v2);
 
-						*((uint32_t*)&poly->x0) = vecs[0];
-						*((uint32_t*)&poly->x1) = vecs[1];
-						*((uint32_t*)&poly->x2) = vecs[2];
+						*((uint32_t*)&poly->x0) = v0;
+						*((uint32_t*)&poly->x1) = v1;
+						*((uint32_t*)&poly->x2) = v2;
 
 						// Link polygon
 						addPrim(&GPU::g_bufferp->ot[1], poly);
 					}
 
-					prim_p = (const TMDPrim_PolyFT3*)((uintptr_t)prim_p + ((prim_p->prim.ilen << 2) + 4));
+					prim_p = (const TMDPrim*)((uintptr_t)prim_p + ((prim_p->ilen << 2) + 4));
 				}
 			}
-
-			/*
-			// Get pointers
-			const TMD *tmd_p = (const TMD*)tmd;
-			if (tmd_p->id != 0x00000041 || tmd_p->flags != 0 || tmd_p->nobj != 1)
-				DebugAbort("Bad TMD\n");
-
-			// Transform vertices
-			const VDF *vdf_p = (const VDF*)vdf;
-			const VDF *dat_p = (const DAT*)dat;
-
-			const DATKey *dat_key = dat_p->key;
-
-			uint16_t frame = time >> 16;
-			if (frame > vdf_p->key->frames)
-				frame = vdf_p->key->frames;
-
-			void *bp = (void*)0x1F800000;
-			(void)bp;
-
-			u_long verts = tmd_p->obj->n_vert;
-			const ::SVECTOR *vert_old = (const ::SVECTOR*)((const char*)tmd_p->obj + tmd_p->obj->vert_top);
-
-			const ::SVECTOR *vert = (const ::SVECTOR*)0x1F800000;
-			for (u_long i = 0; i < verts; i++)
-			{
-				
-			}
-
-			// Display primitives
-			u_long prims = tmd_p->obj->n_primitive;
-			const char *prim = (const char*)tmd_p->obj + tmd_p->obj->primitive_top;
-
-			for (u_long i = 0; i < prims; i++)
-			{
-				const TMDPrim *prim_p = (const TMDPrim*)prim;
-
-				const TMDPrim_PolyFT3 *fmt = (const TMDPrim_PolyFT3*)prim_p;
-				gte_ldv3(&vert[fmt->i0], &vert[fmt->i1], &vert[fmt->i2]);
-				gte_rtpt();
-
-				::DVECTOR vecs[3];
-				gte_stsxy3c(vecs);
-
-				::POLY_FT3 *poly = GPU::AllocPrim<::POLY_FT3>(GPU::OT::UI);
-				setPolyFT3(poly);
-				poly->r0 = fmt->r;
-				poly->g0 = fmt->g;
-				poly->b0 = fmt->b;
-				poly->u0 = fmt->u0;
-				poly->v0 = fmt->v0;
-				poly->u1 = fmt->u1;
-				poly->v1 = fmt->v1;
-				poly->u2 = fmt->u2;
-				poly->v2 = fmt->v2;
-				poly->clut = fmt->clut;
-				poly->tpage = fmt->tpage;
-				poly->x0 = vecs[0].vx;
-				poly->y0 = vecs[0].vy;
-				poly->x1 = vecs[1].vx;
-				poly->y1 = vecs[1].vy;
-				poly->x2 = vecs[2].vx;
-				poly->y2 = vecs[2].vy;
-				
-				prim += (prim_p->ilen << 2) + 4;
-			}
-			*/
 		}
 	}
 }
