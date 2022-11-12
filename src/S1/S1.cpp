@@ -135,6 +135,7 @@ namespace OpenPara
 					rap.Start((void*)this, &chart);
 					
 					// Start music
+					CD::Seek(&g_scenes[g_scene].xa.file.pos);
 					CD::XA::Volume(0x40);
 					CD::XA::Filter(1, 1);
 					CD::XA::Play(&g_scenes[g_scene].xa.file);
@@ -146,7 +147,8 @@ namespace OpenPara
 						Pad::Poll();
 
 						// Run rap
-						rap.SetTime(CD::XA::Tell());
+						if (CD::XA::Playing())
+							rap.SetTime(CD::XA::Tell());
 
 						// Submit rap inputs
 						if (rap.IsRapping())

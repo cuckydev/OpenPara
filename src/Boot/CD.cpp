@@ -56,7 +56,6 @@ namespace OpenPara
 
 		namespace XA
 		{
-			static bool playing;
 			static uint32_t start_loc, end_loc, cur_loc;
 
 			static void ReadyCallback(u_char status, u_char *result)
@@ -77,23 +76,6 @@ namespace OpenPara
 				uint32_t read_loc = ::CdPosToInt(loc);
 				if (read_loc >= end_loc)
 					Stop();
-			}
-
-			static void SyncCallback(u_char status, u_char *result)
-			{
-				(void)status;
-				(void)result;
-
-				// Start reading
-				::CdSyncCallback(nullptr);
-
-				::CdlLOC loc;
-				::CdIntToPos(start_loc, &loc);
-				cur_loc = start_loc;
-
-				playing = true;
-				::CdReadyCallback(ReadyCallback);
-				::CdControl(CdlReadS, (u_char*)&loc, nullptr);
 			}
 
 			void Volume(int volume)
@@ -126,25 +108,25 @@ namespace OpenPara
 				param[0] = CdlModeRT | CdlModeSF | CdlModeSize1;
 				::CdControlB(CdlSetmode, param, nullptr);
 
-				::CdSyncCallback(SyncCallback);
-				::CdControl(CdlSeekL, (u_char*)&file->pos, nullptr);
+				::CdReadyCallback(ReadyCallback);
+				::CdControl(CdlReadS, (u_char*)&file->pos, nullptr);
 			}
 
 			void Stop()
 			{
 				// Stop playing file
-				playing = false;
 				::CdControlF(CdlPause, nullptr);
 			}
 
 			bool Playing()
 			{
-				return playing;
+				::CdControl(CdlNop, nullptr, nullptr);
+				return (::CdStatus() & CdlStatRead) != 0;
 			}
 
 			uint32_t Tell()
 			{
-				if (playing)
+				if (Playing())
 				{
 					// Get location from CD drive
 					u_char result[8];
@@ -165,6 +147,16 @@ namespace OpenPara
 
 				return cur_loc - start_loc;
 			}
+		}
+
+		void Seek(const CdlLOC *loc)
+		{
+			// Seek to location
+			u_char param[4] = {};
+			param[0] = CdlModeSpeed;
+			::CdControl(CdlSetmode, param, nullptr);
+
+			::CdControl(CdlSeekL, (u_char*)loc, nullptr);
 		}
 	}
 }
