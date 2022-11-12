@@ -58,20 +58,36 @@ namespace OpenPara
 					DebugOut("%d.%d.%d\n", step / 16, (step / 4) & 3, step & 3);
 
 					// PaRappa idle
-					uint32_t pa_idle, pa_idle_time;
+					uint32_t pa_idle, pa_idle_time, pa_idle_speed;
 					if (step >= Rap::ToStep(55, 0, 0))
-					{ pa_idle = 18; pa_idle_time = 16; } // PA_WT3
+					{
+						pa_idle = 18; // PA_WT3
+						pa_idle_time = 16;
+						pa_idle_speed = 0xF8;
+					}
 					else if (step >= Rap::ToStep(47, 0, 0))
-					{ pa_idle = 17; pa_idle_time = 16; } // PA_WT2
+					{
+						pa_idle = 17; // PA_WT2
+						pa_idle_time = 16;
+						pa_idle_speed = 0xF8;
+					}
 					else if (step >= Rap::ToStep(33, 0, 0))
-					{ pa_idle = 16; pa_idle_time = 8; } // PA_WT1
+					{
+						pa_idle = 16; // PA_WT1
+						pa_idle_time = 8;
+						pa_idle_speed = 0xF0;
+					}
 					else
-					{ pa_idle = 15; pa_idle_time = 8; } // PA_WT0
+					{
+						pa_idle = 15; // PA_WT0
+						pa_idle_time = 8;
+						pa_idle_speed = 0x100;
+					}
 
 					if ((step & 3) == 0 && step >= stage->pa_rapdb)
 					{
 						stage->pa_rapdb = stage->rap.GetStep() + pa_idle_time;
-						stage->pa_mime[0].Play(stage->pa_vdf[pa_idle].ptr, stage->pa_dat[pa_idle].ptr);
+						stage->pa_mime[0].Play(stage->pa_vdf[pa_idle].ptr, stage->pa_dat[pa_idle].ptr, pa_idle_speed);
 					}
 				}
 
