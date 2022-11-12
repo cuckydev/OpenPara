@@ -14,17 +14,23 @@ namespace OpenPara
 {
 	namespace Rap
 	{
-		// Rap constants
-
 		// Chart functions
-		void Rap::SetChart(const Chart *_chart)
+		void Rap::Start(void *_stage, const Chart *_chart)
 		{
+			// Set parent stage
+			stage = _stage;
+
 			// Set and start chart
 			chart = _chart;
 
-			substep = step = 0;
+			substep = Substep(0.0);
+			step = 0;
+
 			line_p = chart->line;
 			line_e = chart->line + chart->lines;
+
+			time_event_p = chart->time_event;
+			time_event_e = chart->time_event + chart->time_events;
 
 			// Initialize rap
 			score = 0;
@@ -39,8 +45,18 @@ namespace OpenPara
 			Substep next_substep = SectorSubstep(sector, chart->start, chart->timer);
 			if (next_substep > substep)
 			{
+				// Update substep, step if the song has just started
+				if (substep == Substep(0.0))
+					chart->stepped(stage);
 				substep = next_substep;
-				step = Substep::type(next_substep);
+
+				// Update step
+				uint32_t next_step = Substep::type(next_substep);
+				for (; step < next_step;)
+				{
+					step++;
+					chart->stepped(stage);
+				}
 			}
 
 			// Scroll line
@@ -100,6 +116,8 @@ namespace OpenPara
 
 			// Initialize rap
 			tap_inputs = 0;
+			for (auto &i : tap_eventi)
+				i = 0;
 		}
 
 		void Rap::SubmitRap(uint32_t button)
@@ -115,6 +133,31 @@ namespace OpenPara
 			tap.time = substep;
 			tap.button = button;
 			tap_input[tap_inputs++] = tap;
+
+			// Handle tap events
+			if (button == Button::Reset)
+			{
+				// Reset tap events
+				for (auto &i : tap_eventi)
+					i = 0;
+			}
+			else
+			{
+				uint32_t key = button & Button::KeyMask;
+				uint32_t events = rap_line->tap_event[key].events;
+				
+				if (rap_line->tap_event[key].events != 0)
+				{
+					// Run tap event
+					const TapEvent &event = rap_line->tap_event[key].event[tap_eventi[key]];
+					event.func(stage, event.user);
+
+					// Increment tap event
+					if (!(button & Button::Repeat))
+						if (++tap_eventi[key] == events)
+							tap_eventi[key] = 0;
+				}
+			}
 		}
 
 		int32_t Rap::JudgeRap()

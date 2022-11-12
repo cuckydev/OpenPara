@@ -84,6 +84,7 @@ namespace OpenPara
 		struct DATKey
 		{
 			uint16_t frames;
+			uint16_t unk; // Always 0
 			int16_t influence[0];
 		};
 
@@ -94,24 +95,13 @@ namespace OpenPara
 		};
 
 		// Mesh functions
-		void DrawMIMe(const void *tmd, uint32_t time, const void *vdf, const void *dat)
+		void DrawMIMe(const void *tmd, MIMe *mime)
 		{
 			// Read TMD
 			const TMD *tmd_p = (const TMD*)tmd;
 
 			const ::SVECTOR *vert_top = (const ::SVECTOR*)(tmd_p->obj[0].vert_top + (uintptr_t)&tmd_p->obj[0]);
 			const uint32_t vertices = tmd_p->obj[0].n_vert;
-
-			// Read VDF
-			const VDF *vdf_p = (const VDF*)vdf;
-
-			// Read DAT
-			const DAT *dat_p = (const DAT*)dat;
-
-			const uint32_t keys = dat_p->keys;
-			uint32_t frames = dat_p->key[0].frames;
-			if (frames != 0)
-				frames--;
 
 			// Copy vertices
 			{
@@ -123,11 +113,25 @@ namespace OpenPara
 			}
 
 			// Animate vertices
-			if (vdf != nullptr)
+			for (MIMe *m = mime; m->vdf != nullptr; m++)
 			{
+				// Get time
+				uint32_t time = m->timer.Get();
+
+				// Read VDF
+				const VDF *vdf_p = (const VDF*)m->vdf;
+
+				// Read DAT
+				const DAT *dat_p = (const DAT*)m->dat;
+
+				const uint32_t keys = dat_p->keys;
+				uint32_t frames = dat_p->key[0].frames;
+				if (frames != 0)
+					frames--;
+				
 				// Read VDF and DAT keys
 				const DATKey *dat_key = &dat_p->key[0];
-				const uintptr_t dat_inc = 2 + (frames << 1);
+				const uintptr_t dat_inc = 4 + (frames << 1);
 
 				const VDFKey *vdf_key = &vdf_p->key[0];
 				const uint32_t vdf_verts = vdf_key->n_vert;

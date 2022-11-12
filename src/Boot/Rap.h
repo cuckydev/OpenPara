@@ -98,6 +98,21 @@ namespace OpenPara
 			}
 		};
 
+		struct TimeEvent
+		{
+			// Event info
+			Substep time;
+			void (*func)(void*, void*);
+			void *user;
+		};
+
+		struct TapEvent
+		{
+			// Event info
+			void (*func)(void*, void*);
+			void *user;
+		};
+
 		struct Suggest
 		{
 			// Suggest info
@@ -119,6 +134,13 @@ namespace OpenPara
 			// Suggested buttons
 			uint32_t suggests;
 			const Suggest *suggest;
+
+			// Tap events
+			struct
+			{
+				uint32_t events = 0;
+				const TapEvent *event = nullptr;
+			} tap_event[6] = {};
 		};
 
 		struct Chart
@@ -127,9 +149,16 @@ namespace OpenPara
 			Substep start;
 			uint64_t timer;
 
+			// Chart events
+			void (*stepped)(void*);
+
 			// Lines
 			uint32_t lines;
 			const Line *line;
+
+			// Time events
+			uint32_t time_events = 0;
+			const TimeEvent *time_event = nullptr;
 		};
 
 		// Rap helpers
@@ -183,6 +212,9 @@ namespace OpenPara
 		class Rap
 		{
 			private:
+				// Parent stage
+				void *stage = nullptr;
+
 				// Chart state
 				const Chart *chart = nullptr;
 				
@@ -190,6 +222,8 @@ namespace OpenPara
 				Substep::type step;
 				
 				const Line *line_p, *line_e;
+
+				const TimeEvent *time_event_p, *time_event_e;
 
 				// Rap state
 				int32_t score = 0;
@@ -200,13 +234,18 @@ namespace OpenPara
 				uint32_t tap_inputs;
 				Tap tap_input[512];
 
+				uint32_t tap_eventi[6];
+
 			public:
 				// Chart functions
-				Rap(const Chart *_chart) { SetChart(_chart); }
+				Rap() {}
+				Rap(void *_stage, const Chart *_chart) { Start(_stage, _chart); }
 
-				void SetChart(const Chart *_chart);
+				void Start(void *_stage, const Chart *_chart);
 
 				void SetTime(uint32_t sector);
+				Substep GetSubstep() { return substep; }
+				Substep::type GetStep() { return step; }
 
 				bool IsRapping();
 

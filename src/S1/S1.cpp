@@ -12,7 +12,6 @@
 #include "Boot/Rap.h"
 #include "Boot/Int.h"
 #include "Boot/Mesh.h"
-#include "Boot/Anim.h"
 
 #include "Boot/GPU.h"
 #include "Boot/Pad.h"
@@ -22,195 +21,180 @@ namespace OpenPara
 {
 	namespace S1
 	{
-		// Song chart
-		static const Rap::Chart chart = {
-			// Chart info
-			Rap::ToSubstep(0, 3, 0.0),
-			Rap::GetTimer(110.0),
+		// Stage types
+		struct PaRap
+		{
+			uint32_t anim, prog, tone;
+		};
 
-			// Lines
-			16,
-			(const Rap::Line[])
-			{
-				// KICK
-				Rap::Line{
-					Rap::ToStep(6, 0, 0), Rap::ToStep(0, 2, 0), 4,
-					Rap::LineFlag::Teacher,
+		class S1
+		{
+			private:
+				// Stage data
+				Int::Int int_compo;
 
-					1,
-					(const Rap::Suggest[])
+				// Rap state
+				Rap::Rap rap;
+				
+				// Onion state
+				Mesh::MIMe on_mime[2];
+
+				void *on_tmd;
+				Int::IntFile *on_vdf, *on_dat;
+
+				// PaRappa state
+				Mesh::MIMe pa_mime[2];
+				Rap::Substep::type pa_rapdb = 0;
+
+				void *pa_tmd;
+				Int::IntFile *pa_vdf, *pa_dat;
+				
+				// Beat event
+				static void Event_Stepped(void *stage_void)
+				{
+					// Get arguments
+					S1 *stage = (S1*)stage_void;
+					Rap::Substep::type step = stage->rap.GetStep();
+					DebugOut("%d.%d.%d\n", step / 16, (step / 4) & 3, step & 3);
+
+					// PaRappa idle
+					uint32_t pa_idle, pa_idle_time;
+					if (step >= Rap::ToStep(55, 0, 0))
+					{ pa_idle = 18; pa_idle_time = 16; } // PA_WT3
+					else if (step >= Rap::ToStep(47, 0, 0))
+					{ pa_idle = 17; pa_idle_time = 16; } // PA_WT2
+					else if (step >= Rap::ToStep(33, 0, 0))
+					{ pa_idle = 16; pa_idle_time = 8; } // PA_WT1
+					else
+					{ pa_idle = 15; pa_idle_time = 8; } // PA_WT0
+
+					if ((step & 3) == 0 && step >= stage->pa_rapdb)
 					{
-						{ Rap::ToSubstep(6, 0, 0), Rap::Button::Triangle }
+						stage->pa_rapdb = stage->rap.GetStep() + pa_idle_time;
+						stage->pa_mime[0].Play(stage->pa_vdf[pa_idle].ptr, stage->pa_dat[pa_idle].ptr);
 					}
-				},
-				Rap::Line{
-					Rap::ToStep(6, 2, 0), Rap::ToStep(0, 2, 0), 4,
-					0,
+				}
 
-					1,
-					(const Rap::Suggest[])
+				// PaRappa rap event
+				static constexpr PaRap parap_kick  = { 6, 0, 0 }; // PA_KICK
+				static constexpr PaRap parap_punch = { 9, 0, 0 }; // PA_PNCH
+				static constexpr PaRap parap_chop  = { 1, 0, 0 }; // PA_CHOP
+				static constexpr PaRap parap_block = { 0, 0, 0 }; // PA_BLCK
+
+				static void Event_PaRap(void *stage_void, void *user)
+				{
+					// Get arguments
+					S1 *stage = (S1*)stage_void;
+					PaRap *parap = (PaRap*)user;
+
+					// Play animation
+					stage->pa_rapdb = stage->rap.GetStep() + 8;
+					stage->pa_mime[0].Play(stage->pa_vdf[parap->anim].ptr, stage->pa_dat[parap->anim].ptr);
+				}
+
+				// Stage chart
+				#include "S1/Chart.h"
+
+			public:
+				// Stage functions
+				S1()
+				{
+					// Read stage data
+					int_compo.Read(&g_scenes[g_scene].compo.file);
+
+					// Get Onion data
+					on_tmd = int_compo[40].ptr;
+					on_vdf = &(int_compo[49]);
+					on_dat = &(int_compo[101]);
+
+					// Get PaRappa data
+					pa_tmd = int_compo[41].ptr;
+					pa_vdf = &(int_compo[81]);
+					pa_dat = &(int_compo[133]);
+				}
+
+				bool Main()
+				{
+					// Start rap
+					rap.Start((void*)this, &chart);
+					
+					// Start music
+					CD::XA::Volume(0x40);
+					CD::XA::Filter(1, 1);
+					CD::XA::Play(&g_scenes[g_scene].xa.file);
+
+					// Stage loop
+					while (1)
 					{
-						{ Rap::ToSubstep(6, 2, 0), Rap::Button::Triangle }
-					}
-				},
-				// PUNCH
-				Rap::Line{
-					Rap::ToStep(7, 0, 0), Rap::ToStep(0, 2, 0), 4,
-					Rap::LineFlag::Teacher,
+						// Poll pad
+						Pad::Poll();
 
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(7, 0, 0), Rap::Button::Circle }
-					}
-				},
-				Rap::Line{
-					Rap::ToStep(7, 2, 0), Rap::ToStep(0, 2, 0), 4,
-					0,
+						// Run rap
+						rap.SetTime(CD::XA::Tell());
 
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(7, 2, 0), Rap::Button::Circle }
-					}
-				},
-				// CHOP
-				Rap::Line{
-					Rap::ToStep(8, 0, 0), Rap::ToStep(0, 2, 0), 4,
-					Rap::LineFlag::Teacher,
+						// Submit rap inputs
+						if (rap.IsRapping())
+						{
+							uint32_t modifier = 0;
+							if (Pad::g_pad[0].held & Pad::Button::Left)
+								rap.SubmitRap(Rap::Button::Reset);
+							if (Pad::g_pad[0].held & Pad::Button::Right)
+								modifier |= Rap::Button::Repeat;
 
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(8, 0, 0), Rap::Button::Cross }
-					}
-				},
-				Rap::Line{
-					Rap::ToStep(8, 2, 0), Rap::ToStep(0, 2, 0), 4,
-					0,
+							if (Pad::g_pad[0].press & Pad::Button::Triangle)
+								rap.SubmitRap(Rap::Button::Triangle | modifier);
+							if (Pad::g_pad[0].press & Pad::Button::Circle)
+								rap.SubmitRap(Rap::Button::Circle | modifier);
+							if (Pad::g_pad[0].press & Pad::Button::Cross)
+								rap.SubmitRap(Rap::Button::Cross | modifier);
+							if (Pad::g_pad[0].press & Pad::Button::Square)
+								rap.SubmitRap(Rap::Button::Square | modifier);
+							if (Pad::g_pad[0].press & Pad::Button::R1)
+								rap.SubmitRap(Rap::Button::R | modifier);
+							if (Pad::g_pad[0].press & Pad::Button::L1)
+								rap.SubmitRap(Rap::Button::L | modifier);
+						}
+						
+						// Scene draw
+						rap.Draw();
 
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(8, 2, 0), Rap::Button::Cross }
-					}
-				},
-				// BLOCK
-				Rap::Line{
-					Rap::ToStep(9, 0, 0), Rap::ToStep(0, 2, 0), 4,
-					Rap::LineFlag::Teacher,
+						// Set camera TEMP
+						gte_SetGeomOffset(GPU::g_width / 2, GPU::g_height / 2);
+						gte_SetGeomScreen(440);
 
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(9, 0, 0), Rap::Button::Square }
-					}
-				},
-				Rap::Line{
-					Rap::ToStep(9, 2, 0), Rap::ToStep(0, 2, 0), 4,
-					0,
+						MATRIX mat = {{{},{},{}},{}};
+						mat.m[0][0] = 0x1000;
+						mat.m[1][1] = 0x1000;
+						mat.m[2][2] = 0x1000;
+						mat.t[0] = 0x0200;
+						mat.t[1] = 0x0300;
+						mat.t[2] = 0x1000;
 
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(9, 2, 0), Rap::Button::Square }
-					}
-				},
+						gte_SetTransMatrix(&mat);
+						gte_SetRotMatrix(&mat);
 
-				// KICK
-				Rap::Line{
-					Rap::ToStep(10, 0, 0), Rap::ToStep(0, 2, 0), 4,
-					Rap::LineFlag::Teacher,
+						// Draw PaRappa
+						Mesh::DrawMIMe(pa_tmd, pa_mime);
 
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(10, 0, 0), Rap::Button::Triangle }
+						// Flip GPU
+						GPU::FillRect(GPU::OT::Length - 1, ::RECT{0, 0, short(GPU::g_width), short(GPU::g_height)}, 0, 0, 0);
+						GPU::Flip();
 					}
-				},
-				Rap::Line{
-					Rap::ToStep(10, 2, 0), Rap::ToStep(0, 2, 0), 4,
-					0,
 
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(10, 2, 0), Rap::Button::Triangle }
-					}
-				},
-				// PUNCH
-				Rap::Line{
-					Rap::ToStep(11, 0, 0), Rap::ToStep(0, 2, 0), 4,
-					Rap::LineFlag::Teacher,
-
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(11, 0, 0), Rap::Button::Circle }
-					}
-				},
-				Rap::Line{
-					Rap::ToStep(11, 2, 0), Rap::ToStep(0, 2, 0), 4,
-					0,
-
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(11, 2, 0), Rap::Button::Circle }
-					}
-				},
-				// CHOP
-				Rap::Line{
-					Rap::ToStep(12, 0, 0), Rap::ToStep(0, 2, 0), 4,
-					Rap::LineFlag::Teacher,
-
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(12, 0, 0), Rap::Button::Cross }
-					}
-				},
-				Rap::Line{
-					Rap::ToStep(12, 2, 0), Rap::ToStep(0, 2, 0), 4,
-					0,
-
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(12, 2, 0), Rap::Button::Cross }
-					}
-				},
-				// BLOCK
-				Rap::Line{
-					Rap::ToStep(13, 0, 0), Rap::ToStep(0, 2, 0), 4,
-					Rap::LineFlag::Teacher,
-
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(13, 0, 0), Rap::Button::Square }
-					}
-				},
-				Rap::Line{
-					Rap::ToStep(13, 2, 0), Rap::ToStep(0, 2, 0), 4,
-					0,
-
-					1,
-					(const Rap::Suggest[])
-					{
-						{ Rap::ToSubstep(13, 2, 0), Rap::Button::Square }
-					}
-				},
-			}
+					return false;
+				}
 		};
 
 		// Entry point
 		void Main()
 		{
-			// Read INT
-			Int::Int int_compo;
-			int_compo.Read(&g_scenes[g_scene].compo.file);
+			// Start stage
+			alignas(S1) static char stage[sizeof(S1)];
+			new(stage) S1();
 
+			while (((S1*)stage)->Main());
+			
+			/*
 			// PaRappa model data
 			void *on_tmd = int_compo[40];
 
@@ -305,6 +289,7 @@ namespace OpenPara
 				GPU::FillRect(GPU::OT::Length - 1, ::RECT{0, 0, short(GPU::g_width), short(GPU::g_height)}, 0, 0, 0);
 				GPU::Flip();
 			}
+			*/
 		}
 	}
 }
